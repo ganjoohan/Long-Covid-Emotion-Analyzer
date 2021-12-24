@@ -6,3 +6,4 @@ plotly==5.4.0
 altair==4.1.0
 neattext==0.1.2
 wordcloud==1.8.1
+streamlit-lottie==0.0.3
