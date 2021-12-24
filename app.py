@@ -355,7 +355,7 @@ def main():
                 fig = alt.Chart(porba_df_clean).mark_bar().encode(x='emotions',y='probability', color='emotions')
                 st.altair_chart(fig, use_container_width=True)
 
-                #st.balloons()  #display some balloons effect xD
+                st.balloons()  #display some balloons effect xD
                 
     
     elif choice == "Monitor":
@@ -412,8 +412,8 @@ def main():
         #--------------------------WORD_CLOUD---------------------------
         title('Emotions WordCloud',50,'black')
 
-        unique_emotion = ['analytical','neutral','sadness','joy','tentative','anger','fear','confidence']
-        
+        unique_emotion = ['analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
+        st.write(corpus)
         sl = st.slider('Pick Number of Words',50,200)
         
         def grey_color_func(word, font_size, position,orientation,random_state=None, **kwargs):
@@ -525,7 +525,7 @@ def main():
         # -------------------- Emotion selection ------------------------
         
         with st.expander("See Datasets 👇"):
-            emotion_list = ['All','analytical','neutral','sadness','joy','tentative','anger','fear','confidence']
+            emotion_list = ['All','analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
             select_emotion = st.selectbox('select emotion',emotion_list)
             # Filtering data
             if select_emotion == 'All':
