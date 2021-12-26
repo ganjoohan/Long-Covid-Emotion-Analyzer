@@ -57,7 +57,7 @@ def load_data():
 
 @st.cache(allow_output_mutation=True)
 def load_corpus():
-    data = pd.read_pickle("datasets/emotion_corpusV2.pkl")
+    data = pd.read_pickle("datasets/emotion_corpusV3.pkl")
     return data
 
 @st.cache(allow_output_mutation=True)
@@ -92,7 +92,7 @@ emotions_emoji_dict = {"analytical":"🧐", "sadness":"😔", "neutral":"😐","
 # Disable Some Warnings
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-img = Image.open("images/logo.jpg")
+img = Image.open("images/webicon.jpg")
 
 st.set_page_config(
      page_title="Long Covid Emotion Analyzer",
@@ -140,11 +140,19 @@ def main():
     if choice == "Home":
         add_page_visited_details("Home",datetime.now())
         # Page title
-        st.title("Long Covid Emotion Analyzer")
-
+        #st.title("Long Covid Emotion Analyzer")
         img = Image.open("images/logo.jpg")
         st.image(img, use_column_width=True)
 
+        space(1)
+        st.write("""
+        # Long Covid Emotion Analyzer
+        
+        This app analyze the emotions of people about long COVID topic on Twitter and predict the emotions!
+
+        ***
+        """)
+        
         #Audio
         # audio_file = open("video/backgroundmusic.mp3","rb").read()
         # st.audio(audio_file,format='audio/mp3')
@@ -169,6 +177,7 @@ def main():
             )
 
         # Video
+        st.write("***")
         space(2)
         st.markdown("Let's watch a video about Long-COVID recovery 🎥")
         st.video("https://youtu.be/GrCKc3X2-1Y")
