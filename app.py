@@ -50,17 +50,17 @@ def load_lottiefile(filepath: str):
     with open(filepath, "r") as f:
         return json.load(f)
 
-@st.cache(allow_output_mutation=True)
+#@st.cache(allow_output_mutation=True)
 def load_data():
     data = pd.read_pickle("datasets/emotion_datasetV2.pkl")
     return data
 
-@st.cache(allow_output_mutation=True)
+#@st.cache(allow_output_mutation=True)
 def load_corpus():
     data = pd.read_pickle("datasets/emotion_corpusV3.pkl")
     return data
 
-@st.cache(allow_output_mutation=True)
+#@st.cache(allow_output_mutation=True)
 def load_month_trend():
     data = pd.read_pickle("datasets/month_trend.pkl")
     return data
@@ -74,7 +74,7 @@ def header(text):
 def twitter(text):
     st.markdown(f"<p style='overflow-x: scroll'>{text}</p>",unsafe_allow_html=True)
 
-@st.cache(persist=True,suppress_st_warning=True)
+#@st.cache(persist=True,suppress_st_warning=True)
 def get_top_text_ngrams(corpus, ngrams=(1,1), nr=None):
     vec = CountVectorizer(ngram_range=ngrams).fit(corpus)
     bag_of_words = vec.transform(corpus)
