@@ -422,7 +422,6 @@ def main():
         title('Emotions WordCloud',50,'black')
 
         unique_emotion = ['analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
-        st.write(corpus)
         sl = st.slider('Pick Number of Words',50,200)
         
         def grey_color_func(word, font_size, position,orientation,random_state=None, **kwargs):
