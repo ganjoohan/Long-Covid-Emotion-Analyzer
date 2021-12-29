@@ -1,5 +1,6 @@
 # Core Pkgs
 import requests
+import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import json
@@ -17,11 +18,18 @@ from PIL import Image
 # EDA Pkgs
 import pandas as pd
 import numpy as np
+import neattext as nt
 from neattext.functions import clean_text
 from datetime import datetime
+import nltk
+nltk.download('omw-1.4')
+from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
 
 # Sklearn
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction import text 
 
 # Track Utils
 from track_utils import create_page_visited_table,add_page_visited_details,view_all_page_visited_details,add_prediction_details,view_all_prediction_details,create_emotionclf_table
@@ -66,7 +74,7 @@ def load_month_trend():
     return data
 
 def title(text,size,color):
-    st.markdown(f'<h1 style="font-weight:bolder;font-size:{size}px;color:{color};text-align:center;">{text}</h1>',unsafe_allow_html=True)
+    st.markdown(f'<h2 style="font-weight:bolder;font-size:{size}px;color:{color};text-align:center;">{text}</h2>',unsafe_allow_html=True)
 
 def header(text):
     st.markdown(f"<p style='color:white;'>{text}</p>",unsafe_allow_html=True)
@@ -74,18 +82,67 @@ def header(text):
 def twitter(text):
     st.markdown(f"<p style='overflow-x: scroll'>{text}</p>",unsafe_allow_html=True)
 
-#@st.cache(persist=True,suppress_st_warning=True)
+@st.cache(persist=True,suppress_st_warning=True)
 def get_top_text_ngrams(corpus, ngrams=(1,1), nr=None):
-    vec = CountVectorizer(ngram_range=ngrams).fit(corpus)
+    vec = CountVectorizer(stop_words=stop_words, ngram_range=ngrams).fit(corpus)
     bag_of_words = vec.transform(corpus)
     sum_words = bag_of_words.sum(axis=0)
     words_freq = [(word, sum_words[0, idx]) for word, idx in vec.vocabulary_.items()]
     words_freq = sorted(words_freq, key=lambda x: x[1], reverse=True)
     return words_freq[:nr]
 
-# def cleantext(docx):
-#     cleanDocx = clean_text(docx)
-#     return cleanDocx
+def get_wordnet_pos(treebank_tag):
+    if treebank_tag.startswith('J'):
+        return wordnet.ADJ
+    elif treebank_tag.startswith('V'):
+        return wordnet.VERB
+    elif treebank_tag.startswith('N'):
+        return wordnet.NOUN
+    elif treebank_tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return None
+
+lemmatizer = WordNetLemmatizer()
+
+def clean_text_round2(text):
+    tokens = nltk.word_tokenize(text)
+    tagged = nltk.pos_tag(tokens)
+    full_text = ''
+    for word, tag in tagged:
+        wntag = get_wordnet_pos(tag)
+        if wntag is None:
+            lemma = lemmatizer.lemmatize(word)
+        else:
+            lemma = lemmatizer.lemmatize(word, pos=wntag)
+        full_text += lemma + ' '
+    return full_text
+
+add_stop_words = ['covid', 'long', 'vaccine', 'know', 'people', 'amp', 'time', 'need', 'like', 'year', 'term', 'risk', 'vaccinate', 'symptom','work']
+stop_words = text.ENGLISH_STOP_WORDS.union(add_stop_words)
+
+custom_stop_word_list = ['you know','i mean','yo','dude','couldnt','cant','dont','doesnt','youve',"im",'ive','wasnt','mightnt','hadnt','hvnt','youre','wouldnt','shouldnt','arent','isnt','werent','youll','its','thats', 'covid', 'long', 'vaccine', 'know', 'people', 'amp', 'time', 'need', 'like','year', 'term', 'risk', 'vaccinate', 'symptom', 'work', 'gonna', "gon na", "gon", "na"]
+stop_words = stop_words.union(custom_stop_word_list)
+
+def cleantext(docx):
+    docxFrame = nt.TextFrame(text=docx)
+    docxFrame.remove_hashtags()
+    docxFrame.remove_userhandles()
+    docxFrame.remove_multiple_spaces()
+    docxFrame.remove_urls()
+    docxFrame.remove_emails()
+    docxFrame.remove_numbers()
+    docxFrame.remove_emojis()
+    docxFrame.remove_puncts()
+    docxFrame.remove_special_characters()
+    docxFrame.remove_non_ascii()
+    docxFrame.remove_stopwords()
+    
+    cleanDocx = docxFrame.text
+    cleanDocx = clean_text(cleanDocx, contractions=True, stopwords=True)
+    cleanDocx = ' '.join(term for term in cleanDocx.split() if term not in stop_words)
+    cleanDocx = clean_text_round2(cleanDocx)
+    return cleanDocx
 
 emotions_emoji_dict = {"analytical":"🧐", "sadness":"😔", "neutral":"😐","tentative":"🤔","joy":"😂","confident":"😎","fear":"😨😱","anger":"😡"}
 
@@ -122,6 +179,11 @@ st.markdown("""
         margin: 10px 5px;
         padding: 8px 16px 16px 16px;
         max-width: 468px;
+        transition: transform 500ms ease;
+    }
+    .twitter-tweet:hover,
+    .twitter-tweet:focus-within {
+        transform: scale(1.025);
     }
     </style>""",unsafe_allow_html=True)
 
@@ -132,7 +194,7 @@ def main():
     corpus = load_corpus()
     month_trend = load_month_trend()
     
-    menu = ["Home","Emotion Predictor","EDA","Monitor","Documentation","About"]
+    menu = ["Home","Data Visualization","Emotion Predictor","Monitor","Documentation","About"]
     choice = st.sidebar.selectbox("Menu", menu)
     create_page_visited_table()
     create_emotionclf_table()
@@ -148,7 +210,7 @@ def main():
         st.write("""
         # Long Covid Emotion Analyzer
         
-        This app analyze the emotions of people about long COVID topic on Twitter and predict the emotions!
+        This application analyze the emotions of people about long COVID topic on Twitter and predict the emotions!
 
         ***
         """)
@@ -160,10 +222,12 @@ def main():
         home_col_1, home_col_2 = st.columns((2,1))
         with home_col_1:
             st.subheader("What is Long Covid?")
-            st.markdown("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.")
+            st.markdown("""For some people, coronavirus (COVID-19) can cause symptoms that last weeks or months after the infection has gone. This is sometimes called post-COVID-19 syndrome or '[long COVID](https://www.nhs.uk/conditions/coronavirus-covid-19/long-term-effects-of-coronavirus-long-covid/)'. COVID-19 survivors at all degrees of disease severity, including younger people, children, and those who are not hospitalized, are affected by this long COVID sickness, which is little understood. Many researchers have found that fatigue and difficulty breathing, which can last for months following exposure to COVID-19, are the most prevalent symptoms. Cognitive and mental impairments, chest and joint aches, palpitations, myalgia, smell and taste dysfunctions, cough, headache, and gastrointestinal and cardiac difficulties are all possible persistent symptoms of long COVID.
+            """)
+
 
         with home_col_2:
-            space(1)
+            space(2)
             lottie_coding = load_lottiefile("video/covid19.json")
             st_lottie(
                 lottie_coding,
@@ -185,6 +249,7 @@ def main():
         # Sample tweets for Each Emotions
         space(1)
         st.subheader("Sample Tweets For Each Emotions Categories")
+        st.caption("These are some the tweets that are analysed and picked from the dataset to display.")
         with st.container():
             
             col_11, col_22 = st.columns(2)
@@ -325,19 +390,28 @@ def main():
         
     elif choice == "Emotion Predictor":
         add_page_visited_details("Emotion Predictor",datetime.now())
-        st.subheader("Emotion Predictor In Text")
+        st.title("Emotion Predictor In Text")
+        space(1)
+        st.markdown("""
+        People show various emotions in daily communications. This emotion predictor analyses emotions in what people write online such as tweets. It will predict whether they are joy, fear, sadness, anger, analytical, confident and tentative.
+
+        This emotion predictor model trained from scratch on the texts of 80k tweets that are scrapped from the Twitter. From 6 algorithms (Multinomial Naive Bayes, Logistic Regression, Random Forest, K-Nearest Neighobors, Support Vector Machines, Decision Tree) which are trained, **Logistic Regression with Bag of Words (Unigram)** model performed the best among these models and is used to deploy in this app.
+        """)
+        space(1)
+        st.markdown("**Instructions:** Type in your post text that you want to express. Just have fun.")
 
         with st.form(key='emotion_form'):
             raw_text = st.text_area('Type Here',"Long Covid brings lots of negative and bad effect to the patient. I feel sorry to those who are suffering from Long Covid symptoms")
-            # cleanDocx = cleantext(raw_text)
+            cleanDocx = cleantext(raw_text)
             submit_text = st.form_submit_button(label='Submit')
 
         if submit_text:
+            st.balloons()  #display some balloons effect xD
             col1,col2 = st.columns(2)
 
             # Apply Prediction Funtion Here
-            prediction = predict_emotions(raw_text)
-            probability = get_prediction_proba(raw_text)
+            prediction = predict_emotions(cleanDocx)
+            probability = get_prediction_proba(cleanDocx)
 
             add_prediction_details(raw_text,prediction,np.max(probability),datetime.now())
 
@@ -351,8 +425,8 @@ def main():
                 st.write("Confidence:{}".format(np.max(probability)))
             
             with col2:
-                #st.success("Preprocessing Text")
-                #st.write(cleanDocx)
+                st.success("Preprocessing Text")
+                st.write(cleanDocx)
 
                 st.success("Prediction Probability")
                 #st.write(probability)
@@ -363,13 +437,15 @@ def main():
 
                 fig = alt.Chart(porba_df_clean).mark_bar().encode(x='emotions',y='probability', color='emotions')
                 st.altair_chart(fig, use_container_width=True)
+        
+        else:
+            st.write("*Analysis of text will appear here after you click the 'Submit' button*")
 
-                st.balloons()  #display some balloons effect xD
                 
     
     elif choice == "Monitor":
         add_page_visited_details("Monitor",datetime.now())
-        st.subheader("Monitor App")
+        st.title("Monitor App")
 
         with st.expander("Page Metrics"):
             page_visited_details = pd.DataFrame(view_all_page_visited_details(),columns=['Pagename','Time_of_Visit'])
@@ -390,13 +466,17 @@ def main():
             pc = alt.Chart(prediction_count).mark_bar().encode(x='Prediction',y='Counts',color='Prediction')
             st.altair_chart(pc,use_container_width=True)	
     
-    elif choice == "EDA":
+    elif choice == "Data Visualization":
         add_page_visited_details("EDA",datetime.now())
         # Read data
-        st.title("Exploratory Data Analysis")
+        st.title("Long Covid on Social Media: Analyzing Twitter Conversations")
+        space(1)
+        st.markdown("""
+        More than 90k real-time tweets on Twitter from May 2021 to September 2021 related to **Long Covid** are analyzed to give up-to-date insights about the post-syndrome of COVID-19 from the lens of social media. What are the keyword trends for long COVID topics across various timeline and different emotions? What is the distribution of emotions towards long COVID topics?
+        """)
 
         # ----------------- Emotion Metrics Percentage -----------------
-        title('Distribution of Emotion',50,'black')
+        title('Distribution of Emotion',40,'black')
         with st.container():
             
             col_1, col_2, col_3 = st.columns((1,1,3))
@@ -419,7 +499,7 @@ def main():
                 st.plotly_chart(bar_CC,use_container_width=True)
 
         #--------------------------WORD_CLOUD---------------------------
-        title('Emotions WordCloud',50,'black')
+        title('Emotions WordCloud',40,'black')
 
         unique_emotion = ['analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
         sl = st.slider('Pick Number of Words',50,200)
@@ -427,7 +507,7 @@ def main():
         def grey_color_func(word, font_size, position,orientation,random_state=None, **kwargs):
             return("hsl(240,100%%, %d%%)" % np.random.randint(45,55))
         
-        wc = WordCloud(background_color="white", color_func = grey_color_func,max_font_size=150, random_state=42,max_words=sl, collocations=False)
+        wc = WordCloud(stopwords=stop_words, background_color="white", color_func = grey_color_func, max_font_size=150, random_state=42,max_words=sl, collocations=False)
 
         plt.rcParams['figure.figsize'] = [40, 40]  #16,6 #40,40
         full_names = unique_emotion
@@ -444,9 +524,9 @@ def main():
         st.pyplot()
 
 
-        #-------------------------Module 5-----------------------------
+        #-------------------------Module 1-----------------------------
 
-        title('Most Popular One Word',50,'black')
+        title('Most Popular One Word',40,'black')
         st.caption('removing all the stop words in the sense common words.')
 
         sl_2 = st.slider('Pick Number of Words',5,50,10, key="1")
@@ -461,9 +541,9 @@ def main():
 
         st.plotly_chart(bar_C1,use_container_width=True)
 
-        #-------------------------Module 6-----------------------------
+        #-------------------------Module 2-----------------------------
 
-        title('Most Popular Two Words',50,'black')
+        title('Most Popular Two Words',40,'black')
 
         sl_3 = st.slider('Pick Number of Words',5,50,10, key="2")
 
@@ -477,9 +557,9 @@ def main():
 
         st.plotly_chart(bar_C2,use_container_width=True)
 
-        #-------------------------Module 7-----------------------------
+        #-------------------------Module 3-----------------------------
 
-        title('Most Popular Three Words',50,'black')
+        title('Most Popular Three Words',40,'black')
 
         header("range")
         sl_4 = st.slider('Pick Number of Words',5,50,10, key="3")
@@ -494,9 +574,9 @@ def main():
 
         st.plotly_chart(bar_C3,use_container_width=True)
 
-        #-------------------------Module 8-----------------------------
+        #-------------------------Module 4-----------------------------
 
-        title('Top Keywords For Each Month',50,'black')
+        title('Top Keywords For Each Month',40,'black')
         months_name = ['May','June','July','August','September']
         months = {'May':'2021-05','June':'2021-06','July':'2021-07','August':'2021-08','September':'2021-09'}
 
@@ -523,7 +603,7 @@ def main():
         st.plotly_chart(bar_C4,use_container_width=True)
 
         #----------------------Line Chart Keywords--------------------------
-        title('Top 10 Emerging Words',50,'black')
+        title('Top 10 Emerging Words',40,'black')
         line_chart = px.line(month_trend, x='Month', y='Counts', color='Words')
         line_chart.update_traces(mode="markers+lines", hovertemplate=None)
         line_chart.update_layout(hovermode="x unified",plot_bgcolor='aliceblue')
@@ -551,13 +631,101 @@ def main():
 
     elif choice == "Documentation":
         add_page_visited_details("Documentation",datetime.now())
-        st.write('User Guide')
+        st.title("Documentation")
 
-        space(2)
+        st.markdown("""
+        <h2 style="font-weight:bolder;font-size:30px;color:#216fdb;text-align:left;">The Menu</h2>
+
+        <p>To read more details about this application, can refer to <a target="_blank" href="https://drive.google.com/file/d/1anRSgIKOyadHSA3h0qb-YwZFgf4BX7I_/view?usp=sharing">user manual.</a></p>
+
+        <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Home</h2>
+
+        The `Home` introduces the concept of *long COVID* and displays interactively some of the sample tweets from the dataset which are analyzed and labeled. You can easily look into the tweets represented by each category of emotions.
+
+        <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Data Visualization</h2>
+
+        The `Data Visualization` explore the dataset by plotting out various insightful visualizations such as metrics, bar chart, word cloud, line chart, etc. to better display the data. You can find out the distribution of emotions in the dataset, which words are mostly used in each emotion, which word and combination of words are most popular. You can also find out the top keywords for each month and the top 10 emerging words. Lastly, you can inspect the dataset that are used in this project.
+
+        **IMPORTANT**: It might take some time for the results to load due to the large dataset that is needed to process. 
+
+        <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Emotion Predictor</h2>
+
+        The `Emotion Predictor` is a trained machine learning model which is used to predict the emotion of the user input text. You can input your text or tweets into the *textbox* and click the *Submit* button to generate the analysis result.
+
+        <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Monitor</h2>
+
+        The `Monitor` collects the user's visited data and inputs text from the user. You can find out on which pages are most visited. You can also find out the past analyzed text entered by the user in `Emotion Predictor` and the results.
+        
+        """,unsafe_allow_html=True)
+
 
     else:
-        st.subheader("About")
+        #st.subheader("About")
         add_page_visited_details("About",datetime.now())
+        st.title("About the Application")
+
+        st.markdown("""
+
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">What is this App about?</h2>
+        
+        This project aims to build a long COVID emotion analyzer. The application can analyze how people react to the long COVID and what are their emotions. The application can find out the trends of keywords used by people regarding the long COVID issues. The application can also analyze the emotion from the user input text. 
+
+        
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">Who is this App for?</h2>
+
+        <p>Anyone can use this App completely for free! The target users are the people who are concerned about long COVID issues and long COVID patients. If you are interest in finding out how people feel about the pandemic and long COVID issues, this application would be a good choice for you to explore.
+        
+        If you like it ❤️, show your support by sharing 👍</p>
+        
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">What is the features of this App?</h2>
+
+        + Data Exploration and Analysis
+        + Emotion Prediction
+        + Monitoring Application
+
+
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">What is the objectives of this App?</h2>
+
+        1. To explore the trend of keywords across the various timeline and different emotions
+            - What are the keyword trends for long COVID topics?
+              
+
+        2. To determine the emotions using supervised algorithms
+            - What machine learning algorithms can be used to determine the emotions from texts?   
+           
+           
+        3. To assess the effectiveness of the emotion model by using evaluation metrics
+            - What are metrics can be used to evaluate the emotion model?   
+
+
+        4. To develop a product for the emotion analyzer
+            - How to share the insights of the data and the application of the emotion model to stakeholders?   
+
+
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">Data Information</h2>
+
+        The dataset to be used in this project is scraped from Twitter using Twitter API.     
+        To access the dataset:   
+        https://drive.google.com/drive/folders/1cT9FzTWmjATdy7rlkrcRj_NU2zKCtYZE?usp=sharing
+
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">Source Code</h2>
+
+        https://github.com/ganjoohan/Long-Covid-Emotion-Analyzer
+
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">About me</h2>
+        I'm originally from Malacca, Malaysia, currenlty a third-year Bachelor of CS Data Science student at the University of Malaya!   
+
+        <br />
+        <br />
+
+        ###### Made in [![this is an image link](https://i.imgur.com/iIOA6kU.png)](https://www.streamlit.io/)&nbsp, with :heart: by [@JooHan](https://joohan.soho68.com/) &nbsp | &nbsp [![GitHub followers](https://img.shields.io/github/followers/ganjoohan?label=Github&style=social)](https://github.com/ganjoohan) &nbsp | &nbsp [![this is an image link](https://camo.githubusercontent.com/d7b9f7e3f8af9348678c5042440844da48b892fb320482f313d28366d10c25d5/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f4c696e6b6564496e2d2532333030373742352e7376673f267374796c653d666f722d7468652d6261646765266c6f676f3d6c696e6b6564696e266c6f676f436f6c6f723d7768697465)](https://www.linkedin.com/in/gan-j-919226136/)
+
+
+
+
+        """, unsafe_allow_html=True)
+
+
 
 
 
