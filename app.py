@@ -1,6 +1,5 @@
 # Core Pkgs
 import requests
-import base64
 import streamlit as st
 import streamlit.components.v1 as components
 import json
@@ -21,11 +20,11 @@ import numpy as np
 import neattext as nt
 from neattext.functions import clean_text
 from datetime import datetime
-import nltk
+# import nltk
 # nltk.download('omw-1.4')
-from nltk.corpus import wordnet
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
+# from nltk.corpus import wordnet
+# from nltk.stem import WordNetLemmatizer
+# from nltk.tokenize import word_tokenize
 
 # Sklearn
 from sklearn.feature_extraction.text import CountVectorizer
@@ -91,32 +90,32 @@ def get_top_text_ngrams(corpus, ngrams=(1,1), nr=None):
     words_freq = sorted(words_freq, key=lambda x: x[1], reverse=True)
     return words_freq[:nr]
 
-def get_wordnet_pos(treebank_tag):
-    if treebank_tag.startswith('J'):
-        return wordnet.ADJ
-    elif treebank_tag.startswith('V'):
-        return wordnet.VERB
-    elif treebank_tag.startswith('N'):
-        return wordnet.NOUN
-    elif treebank_tag.startswith('R'):
-        return wordnet.ADV
-    else:
-        return None
+# def get_wordnet_pos(treebank_tag):
+#     if treebank_tag.startswith('J'):
+#         return wordnet.ADJ
+#     elif treebank_tag.startswith('V'):
+#         return wordnet.VERB
+#     elif treebank_tag.startswith('N'):
+#         return wordnet.NOUN
+#     elif treebank_tag.startswith('R'):
+#         return wordnet.ADV
+#     else:
+#         return None
 
-lemmatizer = WordNetLemmatizer()
+# lemmatizer = WordNetLemmatizer()
 
-def clean_text_round2(text):
-    tokens = nltk.word_tokenize(text)
-    tagged = nltk.pos_tag(tokens)
-    full_text = ''
-    for word, tag in tagged:
-        wntag = get_wordnet_pos(tag)
-        if wntag is None:
-            lemma = lemmatizer.lemmatize(word)
-        else:
-            lemma = lemmatizer.lemmatize(word, pos=wntag)
-        full_text += lemma + ' '
-    return full_text
+# def clean_text_round2(text):
+#     tokens = nltk.word_tokenize(text)
+#     tagged = nltk.pos_tag(tokens)
+#     full_text = ''
+#     for word, tag in tagged:
+#         wntag = get_wordnet_pos(tag)
+#         if wntag is None:
+#             lemma = lemmatizer.lemmatize(word)
+#         else:
+#             lemma = lemmatizer.lemmatize(word, pos=wntag)
+#         full_text += lemma + ' '
+#     return full_text
 
 add_stop_words = ['covid', 'long', 'vaccine', 'know', 'people', 'amp', 'time', 'need', 'like', 'year', 'term', 'risk', 'vaccinate', 'symptom','work']
 stop_words = text.ENGLISH_STOP_WORDS.union(add_stop_words)
@@ -141,7 +140,7 @@ def cleantext(docx):
     cleanDocx = docxFrame.text
     cleanDocx = clean_text(cleanDocx, contractions=True, stopwords=True)
     cleanDocx = ' '.join(term for term in cleanDocx.split() if term not in stop_words)
-    cleanDocx = clean_text_round2(cleanDocx)
+    # cleanDocx = clean_text_round2(cleanDocx)
     return cleanDocx
 
 emotions_emoji_dict = {"analytical":"🧐", "sadness":"😔", "neutral":"😐","tentative":"🤔","joy":"😂","confident":"😎","fear":"😨😱","anger":"😡"}
