@@ -8,6 +8,3 @@ neattext==0.1.2
 wordcloud==1.8.1
 streamlit-lottie==0.0.3
 nltk
-wordnet
-pros_cons
-reuters
