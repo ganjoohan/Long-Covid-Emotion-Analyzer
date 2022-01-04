@@ -589,9 +589,10 @@ def main():
         with col_2:
             sl_5 = st.slider("Pick Number of Words",5,50,10, key="4")
 
+        # title(f"Top {sl_5} Keywords For {monthChoice}",40,'black')
         # Unigrams - Most Popular One Keyword
         selected_month = months[monthChoice]
-        top_text_bigrams = get_top_text_ngrams(df_date[selected_month].clean_tweet, ngrams=(1,1), nr=sl_5)
+        top_text_bigrams = get_top_text_ngrams(df_date.loc[selected_month].clean_tweet, ngrams=(1,1), nr=sl_5)
         top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
         x, y = zip(*top_text_bigrams)
         bar_C4 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title=f'Top {sl_5} Keywords In {monthChoice}', text=y)
@@ -635,7 +636,7 @@ def main():
         st.markdown("""
         <h2 style="font-weight:bolder;font-size:30px;color:#216fdb;text-align:left;">The Menu</h2>
 
-        <p>To read more details about this application, can refer to <a target="_blank" href="https://drive.google.com/file/d/1anRSgIKOyadHSA3h0qb-YwZFgf4BX7I_/view?usp=sharing">user manual.</a></p>
+        <p>To read more details about this application, can refer to <a target="_blank" href="https://drive.google.com/file/d/1DuWp-kCj483yFLcHv3Gdc_GHLBGDWMyi/view?usp=sharing">user manual.</a></p>
 
         <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Home</h2>
 
