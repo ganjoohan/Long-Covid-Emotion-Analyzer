@@ -5,23 +5,26 @@ import streamlit as st
 st.set_page_config(
     page_title="Long Covid Emotion Analyzer",
     page_icon= img,
-    layout="centered",
-    initial_sidebar_state="expanded",
+    layout="wide",
+    initial_sidebar_state="collapsed",
     menu_items={
         'About': "### MEsut_GAn"
     }
 )
-
 import streamlit.components.v1 as components
 from track_utils import create_page_visited_table,create_emotionclf_table
 import utils.display as udisp
 # import your app modules here
-from src import home, dataVisualization, emotionPredictor, monitor, documentation, about
+from src import home, dataVisualization, monitor, documentation, about
+
+
+import hydralit_components as hc
+import datetime
+
 
 MENU = {
     "Home" : home,
     "Data Visualization" : dataVisualization,
-    "Emotion Predictor" : emotionPredictor,
     "Monitor" : monitor,
     "Documentation" : documentation,
     "About" : about,
@@ -30,12 +33,31 @@ MENU = {
 
 def main():
     
-    st.sidebar.title("Navigate yourself...")
-    menu_selection = st.sidebar.radio("Menu", list(MENU.keys()))
+    # specify the primary menu definition
+    menu_data = [
+        {'icon': "far fa-chart-bar", 'label':"Data Visualization"},#no tooltip message
+        {'icon': "fas fa-desktop",'label':"Monitor"},
+        {'icon': "far fa-copy", 'label':"Documentation"},
+        {'icon': "fas fa-info-circle", 'label':"About"}, 
+    ]
 
-    menu = MENU[menu_selection]
+    over_theme = {'txc_inactive': '#FFFFFF','menu_background':'#35558A'}
+    menu_id = hc.nav_bar(
+        menu_definition=menu_data,
+        override_theme=over_theme,
+        home_name='Home',
+        hide_streamlit_markers=False, #will show the st hamburger as well as the navbar now!
+        sticky_nav=True, #at the top or not
+        sticky_mode='pinned', #jumpy or not-jumpy, but sticky or pinned
+    )
 
-    with st.spinner(f"Loading {menu_selection} ..."):
+    
+    # st.sidebar.title("Navigate yourself...")
+    # menu_selection = st.sidebar.radio("Menu", list(MENU.keys()))
+
+    menu = MENU[menu_id]
+    menu_selection = menu_id
+    with st.spinner(f"Loading {menu_id} ..."):
         udisp.render_page(menu)
 
 

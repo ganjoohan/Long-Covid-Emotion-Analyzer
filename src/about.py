@@ -1,7 +1,17 @@
 import streamlit as st
 from track_utils import add_page_visited_details
 from datetime import datetime
+from streamlit_lottie import st_lottie
+import json
 
+def space(num_lines=1):
+    """Adds empty lines to the Streamlit app."""
+    for _ in range(num_lines):
+        st.write("")
+
+def load_lottiefile(filepath: str):
+    with open(filepath, "r") as f:
+        return json.load(f)
 
 def app():
 
@@ -33,7 +43,47 @@ def app():
     #st.subheader("About")
     add_page_visited_details("About",datetime.now())
     st.title("About the Application")
+    home_col_1, home_col_2, home_col_3= st.columns([10,2,1])
 
+    with home_col_1:
+        st.markdown("""
+
+        <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">What is Long Covid?</h2> 
+        
+        """, unsafe_allow_html=True)
+        st.markdown("""For some people, coronavirus (COVID-19) can cause symptoms that last weeks or months after the infection has gone. This is sometimes called post-COVID-19 syndrome or '[long COVID](https://www.nhs.uk/conditions/coronavirus-covid-19/long-term-effects-of-coronavirus-long-covid/)'. COVID-19 survivors at all degrees of disease severity, including younger people, children, and those who are not hospitalized, are affected by this long COVID sickness, which is little understood. Many researchers have found that fatigue and difficulty breathing, which can last for months following exposure to COVID-19, are the most prevalent symptoms. Cognitive and mental impairments, chest and joint aches, palpitations, myalgia, smell and taste dysfunctions, cough, headache, and gastrointestinal and cardiac difficulties are all possible persistent symptoms of long COVID.
+        """)
+
+    with home_col_2:
+        lottie_coding = load_lottiefile("video/covid19.json")
+        st_lottie(
+            lottie_coding,
+            speed=2,
+            reverse=False,
+            loop=True,
+            quality="low", #medium / high
+            height=None,
+            width=None,
+            key=None,
+        )
+ 
+    with home_col_3:
+        st.write("")
+    # Video
+    st.markdown("Let's watch a video about Long-COVID recovery 🎥")
+
+    abt_col_1, abt_col_2, abt_col_3, abt_col_4,abt_col_5 = st.columns([0.1,2,1,1.5,1])
+    with abt_col_1:
+        st.write("")
+    with abt_col_2:
+        st.video("https://youtu.be/GrCKc3X2-1Y")
+    with abt_col_3:
+        st.write("")
+    with abt_col_4:
+        st.write("")
+    with abt_col_5:
+        st.write("")
+    
     st.markdown("""
 
     <h2 style="font-weight:bolder;font-size:20px;color:#216fdb;text-align:left;">What is this App about?</h2>
@@ -94,3 +144,8 @@ def app():
 
 
     """, unsafe_allow_html=True)
+
+
+
+
+    
