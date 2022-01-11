@@ -12,7 +12,7 @@ st.set_page_config(
     }
 )
 import streamlit.components.v1 as components
-from track_utils import create_page_visited_table,create_emotionclf_table
+from track_utils import create_emotionclf_table
 import utils.display as udisp
 # import your app modules here
 from src import home, dataVisualization, monitor, documentation, about
@@ -40,6 +40,8 @@ def main():
         {'icon': "far fa-copy", 'label':"Documentation"},
         {'icon': "fas fa-info-circle", 'label':"About"}, 
     ]
+
+    create_emotionclf_table()
 
     over_theme = {'txc_inactive': '#FFFFFF','menu_background':'#35558A'}
     menu_id = hc.nav_bar(
