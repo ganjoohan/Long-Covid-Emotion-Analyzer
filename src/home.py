@@ -1,14 +1,14 @@
 import streamlit as st
-from track_utils import add_page_visited_details,add_prediction_details
+from track_utils import add_prediction_details
 from datetime import datetime
-from PIL import Image
 import pandas as pd
 import numpy as np
 import neattext as nt
 from neattext.functions import clean_text
 import joblib
 from sklearn.feature_extraction import text 
-import altair as alt
+# from PIL import Image
+# import altair as alt
 
 def space(num_lines=1):
     """Adds empty lines to the Streamlit app."""
@@ -116,43 +116,51 @@ def app():
         }
         </style>""",unsafe_allow_html=True)
 
-    add_page_visited_details("Home",datetime.now())
+    # add_page_visited_details("Home",datetime.now())
     # Page title
     #st.title("Long Covid Emotion Analyzer")
-    col1, col2, col3, col4 = st.columns([1,3,3,1])
-    img = Image.open("images/logo.jpg")
-    with col1:
-        st.write("")
+    # col1, col2, col3, col4 = st.columns([1,3,3,1])
+    # img = Image.open("images/logo.jpg")
+    # with col1:
+    #     st.write("")
 
-    with col2:
-        st.image(img, use_column_width=True)
+    # with col2:
+    #     st.image(img, use_column_width=True)
 
-    with col3:
-        space(2)
-        st.markdown("""
-        ## This application analyze the emotions of people about long COVID topic on Twitter and predict the emotions!
-        """)
-        space(1)
-        st.markdown("""##### People show various emotions in daily communications. This emotion predictor analyses emotions in what people write online such as tweets. It will predict whether they are joy, fear, sadness, anger, analytical, confident and tentative.""")
-    with col4:
-        st.write("")
+    # with col3:
+    #     space(2)
+    #     st.markdown("""
+    #     ## This application analyze the emotions of people about long COVID topic on Twitter and predict the emotions!
+    #     """)
+    #     space(1)
+    #     st.markdown("""##### People show various emotions in daily communications. This emotion predictor analyses emotions in what people write online such as tweets. It will predict whether they are joy, fear, sadness, anger, analytical, confident and tentative.""")
+    # with col4:
+    #     st.write("")
     
-    
+    st.markdown('<h1 style="font-weight:10;font-size: 50px;font-family:Source Sans Pro, sans-serif;text-align:center;">Long Covid Emotion Analyzer</h1>',unsafe_allow_html=True)
+    space(2)
     # Long Covid Emotion Analyzer
-    space(1)
-    st.write("***")
-    st.title("Emotion Predictor In Text")
-    space(1)
-    st.markdown("**Instructions:** Type in your post text that you want to express. Just have fun.")
+    # space(1)
+    #st.write("***")
+    col_1, col_2, col_3 = st.columns([1,8,1])
 
-    with st.form(key='emotion_form'):
-        raw_text = st.text_area('Type Here',"Long Covid brings lots of negative and bad effect to the patient. I feel sorry to those who are suffering from Long Covid symptoms")
-        cleanDocx = cleantext(raw_text)
-        submit_text = st.form_submit_button(label='Analyze')
+    with col_1:
+        st.write()
+    
+    with col_2:
+        st.subheader("Emotion Analyzer In Text")
+        space(1)
+        st.markdown("**Instructions:** Type in your text")
+
+        with st.form(key='emotion_form'):
+            raw_text = st.text_area('Type Here',"Long Covid brings lots of negative and bad effect to the patient. I feel sorry to those who are suffering from Long Covid symptoms")
+            cleanDocx = cleantext(raw_text)
+            submit_text = st.form_submit_button(label='Analyze')
 
     if submit_text:
-        st.balloons()  #display some balloons effect xD
-        col1,col2 = st.columns(2)
+        #st.balloons()  #display some balloons effect xD
+        col1, col2, col3, col4 = st.columns([1,2,4,1])
+        # col1,col2 = st.columns(2)
 
         # Apply Prediction Funtion Here
         prediction = predict_emotions(cleanDocx)
@@ -160,33 +168,37 @@ def app():
 
         add_prediction_details(raw_text,prediction,np.max(probability),datetime.now())
 
-        with col1:
-            st.success("Original Text")
-            st.write(raw_text)
+        with col2:
+            # st.success("Original Text")
+            # st.write(raw_text)
 
             st.success("Prediction")
             emoji_icon = emotions_emoji_dict[prediction]
             st.write("{}:{}".format(prediction,emoji_icon))
-            st.write("Confidence:{}".format(np.max(probability)))
+            st.write("Score:{:.0%}".format(np.max(probability)))
         
-        with col2:
-            st.success("Preprocessing Text")
-            st.write(cleanDocx)
+        with col3:
+            # st.success("Preprocessing Text")
+            # st.write(cleanDocx)
 
-            st.success("Prediction Probability")
+            st.success("Emotion Score")
             #st.write(probability)
             proba_df = pd.DataFrame(probability,columns=pipe_lr.classes_)
             #st.write(proba_df.T)
             porba_df_clean = proba_df.T.reset_index()
             porba_df_clean.columns = ["emotions","probability"]
 
-            fig = alt.Chart(porba_df_clean).mark_bar().encode(x='emotions',y='probability', color='emotions')
-            st.altair_chart(fig, use_container_width=True)
+            # fig = alt.Chart(porba_df_clean,height=400).mark_bar().encode(x='emotions',y='probability', color='emotions')
+            # st.altair_chart(fig, use_container_width=True)
             # ---------------------- Emotion Bar Chart ---------------------
-            # import plotly.express as px 
-            # bar_CC = px.bar(porba_df_clean, x='emotions', y='probability', color='emotions')
-            # bar_CC.update_xaxes() #tickangle=0
-            # bar_CC.update_layout() #margin_t=10,margin_b=150
-            # st.plotly_chart(bar_CC,use_container_width=True)
+            import plotly.express as px 
+            bar_CC = px.bar(porba_df_clean, x='emotions', y='probability', color='emotions',color_discrete_sequence=px.colors.qualitative.T10)
+            # https://plotly.com/python/discrete-color/
+
+            bar_CC.update_xaxes() #tickangle=0
+            bar_CC.update_layout() #margin_t=10,margin_b=150
+            st.plotly_chart(bar_CC,use_container_width=True)
     else:
-        st.write("*Analysis of text will appear here after you click the 'Analyze' button*")
+        with col_2: 
+            st.write("*Analysis of text will appear here after you click the 'Analyze' button*")
+    

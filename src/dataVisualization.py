@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from datetime import datetime
 from wordcloud import WordCloud
 import plotly.express as px 
 import matplotlib.pyplot as plt
@@ -9,9 +8,6 @@ import matplotlib.pyplot as plt
 # Sklearn
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction import text 
-
-# Track Utils
-from track_utils import add_page_visited_details
 
 # =============Function=============
 def space(num_lines=1):
@@ -86,199 +82,46 @@ def app():
         }
         </style>""",unsafe_allow_html=True)
 
-        
-    add_page_visited_details("EDA",datetime.now())
 
     # loading the data
     df = load_data()
     corpus = load_corpus()
     month_trend = load_month_trend()
     
-    st.title("Long Covid on Social Media: Analyzing Twitter Conversations")
+    st.title("Long Covid Emotion Analyzer: Twitter")
     space(1)
     st.markdown("""
-    ##### More than 90k real-time tweets on Twitter from May 2021 to September 2021 related to **Long Covid** are analyzed to give up-to-date insights about the post-syndrome of COVID-19 from the lens of social media. What are the keyword trends for long COVID topics across various timeline and different emotions? What is the distribution of emotions towards long COVID topics?
+    * Dataset Size: 97098 tweets
+    * Timeline: May 2021 - September 2021
     """)
     space(1)
     st.markdown("**IMPORTANT**: It might take some time for the results to load due to the large dataset that is needed to process. ")
-    space(2)
+    space(1)
 
-    with st.container():
-        # ----------------- Emotion Metrics Percentage -----------------
-        col_1,col_2,col_3,col_4,col_5,col_6 = st.columns([2,1,1,1,1,2])
-        with col_1:
-            st.write("")
-        with col_2:
-            st.metric("Analytical🧐", value = format(len(df[df['emotion']=='analytical'])/len(df)*100,'.2f')+"%")
-            st.metric("Tentative🤔", format(len(df[df['emotion']=='tentative'])/len(df)*100,'.2f')+"%")
-        with col_3:
-            st.metric("Sadness😔", format(len(df[df['emotion']=='sadness'])/len(df)*100,'.2f')+"%")
-            st.metric("Confident😎", format(len(df[df['emotion']=='confident'])/len(df)*100,'.2f')+"%")
-        with col_4:
-            st.metric("Neutral😐", format(len(df[df['emotion']=='neutral'])/len(df)*100,'.2f')+"%")
-            st.metric("Fear😨😱", format(len(df[df['emotion']=='fear'])/len(df)*100,'.2f')+"%")
-        with col_5:
-            st.metric("Joy😂", format(len(df[df['emotion']=='joy'])/len(df)*100,'.2f')+"%")
-            st.metric("Anger😡", format(len(df[df['emotion']=='anger'])/len(df)*100,'.2f')+"%")
-        with col_6:
-            st.write("")
-
-
-        
-
-    with st.container():
-
-        col_1, col_2, col_3 = st.columns([10,1,10])
-        with col_1:
-            title('Distribution of Emotion',30)
-            # ---------------------- Emotion Bar Chart ---------------------
-            emotion_count = df['emotion'].value_counts().rename_axis('Emotions').reset_index(name='Counts')
-            bar_CC = px.bar(emotion_count, x='Emotions', y='Counts', color='Emotions')
-            # bar_CC.update_xaxes(tickangle=0)
-            bar_CC.update_layout(height=410) #margin_t=10,margin_b=150,
-            st.plotly_chart(bar_CC,use_container_width=True)
-            #----------------------Line Chart Keywords--------------------------
-            title('Top 10 Emerging Words',30)
-            line_chart = px.line(month_trend, x='Month', y='Counts', color='Words')
-            line_chart.update_traces(mode="markers+lines", hovertemplate=None)
-            line_chart.update_layout(height=430,hovermode="x unified") # plot_bgcolor='aliceblue'
-            st.plotly_chart(line_chart,use_container_width=True)
-        
-        with col_2:
-            st.write("")
-        
-        with col_3:
-            #--------------------------WORD_CLOUD---------------------------
-            title('Emotions WordCloud',30)
-
-            unique_emotion = ['analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
-            sl = st.slider('Pick Number of Words',50,200)
-            
-            def grey_color_func(word, font_size, position,orientation,random_state=None, **kwargs):
-                return("hsl(240,100%%, %d%%)" % np.random.randint(45,55))
-            
-            wc = WordCloud(stopwords=stop_words, background_color="white", color_func = grey_color_func, max_font_size=150, random_state=42,max_words=sl, collocations=False)
-
-            plt.rcParams['figure.figsize'] = [30, 30]  #16,6 #40,40
-            full_names = unique_emotion
-
-            # Create subplots for each emotion
-            for index, emotion in enumerate(corpus.emotion):
-                wc.generate(corpus.clean_tweet[emotion])
-                
-                plt.subplot(4, 2, index+1)  #3,4 #4,2
-                plt.imshow(wc, interpolation="bilinear")
-                plt.axis("off")
-                plt.title(full_names[index], fontsize = 40)
-                
-            st.pyplot()
-
-
-            
-
-    with st.container():
-
-        col_1, col_2, col_3 = st.columns(3)
-
-        with col_1:
-            #-------------------------Module 1-----------------------------
-
-            title('Most Popular One Word',30)
-            # st.caption('removing all the stop words in the sense common words.')
-
-            sl_2 = st.slider('Pick Number of Words',5,50,10, key="1")
-
-            # Unigrams - Most Popular One Keyword
-            top_text_bigrams = get_top_text_ngrams(corpus.clean_tweet, ngrams=(1,1), nr=sl_2)
-            top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
-            x, y = zip(*top_text_bigrams)
-            bar_C1 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title='Most Popular One Word', text=y)
-            bar_C1.update_traces(textposition="outside", cliponaxis=False)
-            bar_C1.update_yaxes(dtick=1, automargin=True)
-
-            st.plotly_chart(bar_C1,use_container_width=True)
-
-            #-------------------------Module 2-----------------------------
-        with col_2:
-            title('Most Popular Two Words',30)
-
-            sl_3 = st.slider('Pick Number of Words',5,50,10, key="2")
-
-            # Unigrams - Most Popular One Keyword
-            top_text_bigrams = get_top_text_ngrams(corpus.clean_tweet, ngrams=(2,2), nr=sl_3)
-            top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
-            x, y = zip(*top_text_bigrams)
-            bar_C2 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title='Most Popular Two Word', text=y)
-            bar_C2.update_traces(textposition="outside", cliponaxis=False)
-            bar_C2.update_yaxes(dtick=1, automargin=True)
-
-            st.plotly_chart(bar_C2,use_container_width=True)
-
-            #-------------------------Module 3-----------------------------
-        with col_3:
-            title('Most Popular Three Words',30)
-
-            # header("range")
-            sl_4 = st.slider('Pick Number of Words',5,50,10, key="3")
-
-            # Unigrams - Most Popular One Keyword
-            top_text_bigrams = get_top_text_ngrams(corpus.clean_tweet, ngrams=(3,3), nr=sl_4)
-            top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
-            x, y = zip(*top_text_bigrams)
-            bar_C3 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title='Most Popular Three Word', text=y)
-            bar_C3.update_traces(textposition="outside", cliponaxis=False)
-            bar_C3.update_yaxes(dtick=1, automargin=True)
-
-            st.plotly_chart(bar_C3,use_container_width=True)
-
-    #-------------------------Module 4-----------------------------
-
-    title('Top Keywords For Each Month',30)
-    months_name = ['May','June','July','August','September']
-    months = {'May':'2021-05','June':'2021-06','July':'2021-07','August':'2021-08','September':'2021-09'}
-
-    df['Datetime'] = pd.to_datetime(df['Datetime'])
-    df_date = df.set_index('Datetime')
-
-    col_1,col_2,col_3,col_4 =st.columns(4)
-
-    with col_2:
-        monthChoice = st.radio("Select Month", ('May','June','July','August','September'))
-    with col_3:
-        sl_5 = st.slider("Pick Number of Words",5,50,10, key="4")
-
-    col_1,col_2,col_3 =st.columns([1,2,1])
-
-    with col_1:
-        st.write("")
-
-    with col_2:
-        # title(f"Top {sl_5} Keywords For {monthChoice}",40,'black')
-        # Unigrams - Most Popular One Keyword
-        selected_month = months[monthChoice]
-        top_text_bigrams = get_top_text_ngrams(df_date.loc[selected_month].clean_tweet, ngrams=(1,1), nr=sl_5)
-        top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
-        x, y = zip(*top_text_bigrams)
-        bar_C4 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title=f'Top {sl_5} Keywords In {monthChoice}', text=y)
-        bar_C4.update_traces(textposition="outside", cliponaxis=False)
-        # bar_C4.update_layout(title=f'Top KeywordWord In{monthChoice}')
-        bar_C4.update_yaxes(dtick=1, automargin=True)
-
-        st.plotly_chart(bar_C4,use_container_width=True)
-
-    with col_3:
-        st.write("")
-
-
-
-    space(2)
     st.write("***")
+
+    # -------------------- Emotion selection ------------------------
+    space(1)
+    st.subheader("Dataset")    
+    with st.expander("Click to See Datasets 👇"):
+        emotion_list = ['All','analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
+        select_emotion = st.selectbox('select emotion',emotion_list)
+        # Filtering data
+        if select_emotion == 'All':
+            df_selected_tweet = df
+        else:
+            df_selected_tweet = df[(df.emotion.isin([select_emotion]))]
+
+        st.header('Display Tweets of Selected Emotion(s)')
+        st.write('Data Dimension: '+str(df_selected_tweet.shape[0]) + ' rows and '+ str(df_selected_tweet.shape[1])+ ' columns.')
+        st.dataframe(df_selected_tweet)    
     
-    
+    space(1)
+    #st.write("***")
     # Sample tweets for Each Emotions
     space(1)
     st.subheader("Sample Tweets For Each Emotions Categories")
-    st.caption("These are some the tweets that are analysed and picked from the dataset to display.")
+    st.caption("Choose an emotion to view sample tweets")
 
     with st.container():
         col_11, col_22= st.columns(2)
@@ -423,21 +266,188 @@ def app():
                 </div>
                 """,unsafe_allow_html=True)
 
-    # -------------------- Emotion selection ------------------------
-    space(2)
-    st.write("***")
-
     space(1)
-    st.subheader("Dataset")    
-    with st.expander("See Datasets 👇"):
-        emotion_list = ['All','analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
-        select_emotion = st.selectbox('select emotion',emotion_list)
-        # Filtering data
-        if select_emotion == 'All':
-            df_selected_tweet = df
-        else:
-            df_selected_tweet = df[(df.emotion.isin([select_emotion]))]
+    st.write("***")
+    space(1)
 
-        st.header('Display Tweets of Selected Emotion(s)')
-        st.write('Data Dimension: '+str(df_selected_tweet.shape[0]) + ' rows and '+ str(df_selected_tweet.shape[1])+ ' columns.')
-        st.dataframe(df_selected_tweet)
+
+    # with st.container():
+    #     # ----------------- Emotion Metrics Percentage -----------------
+    #     col_1,col_2,col_3,col_4,col_5,col_6 = st.columns([2,1,1,1,1,2])
+    #     with col_1:
+    #         st.write("")
+    #     with col_2:
+    #         st.metric("Analytical🧐", value = format(len(df[df['emotion']=='analytical'])/len(df)*100,'.2f')+"%")
+    #         st.metric("Tentative🤔", format(len(df[df['emotion']=='tentative'])/len(df)*100,'.2f')+"%")
+    #     with col_3:
+    #         st.metric("Sadness😔", format(len(df[df['emotion']=='sadness'])/len(df)*100,'.2f')+"%")
+    #         st.metric("Confident😎", format(len(df[df['emotion']=='confident'])/len(df)*100,'.2f')+"%")
+    #     with col_4:
+    #         st.metric("Neutral😐", format(len(df[df['emotion']=='neutral'])/len(df)*100,'.2f')+"%")
+    #         st.metric("Fear😨😱", format(len(df[df['emotion']=='fear'])/len(df)*100,'.2f')+"%")
+    #     with col_5:
+    #         st.metric("Joy😂", format(len(df[df['emotion']=='joy'])/len(df)*100,'.2f')+"%")
+    #         st.metric("Anger😡", format(len(df[df['emotion']=='anger'])/len(df)*100,'.2f')+"%")
+    #     with col_6:
+    #         st.write("")
+    
+    st.markdown('<h3 style="font-weight:lighter;font-size:50px;font-family:Source Sans Pro, sans-serif;text-align:center;">Emotion Analyzer</h3>',unsafe_allow_html=True)
+    space(2)
+
+    #title('Emotion Analyzer',40)    
+
+    with st.container():
+
+        col_1, col_2, col_3, col_4 = st.columns([2,0.5,7,1])
+        with col_1:
+            space(3)
+            choiceSelection = st.radio("Choose a visualization", ("Emotion Distribution","Emotion Word Cloud","Trendy Words","Trendy Words Based on Timeline")) 
+
+        with col_3:
+            space(2)
+            if choiceSelection=="Emotion Distribution":
+                title('Distribution of Emotions',30)
+                # ---------------------- Emotion Bar Chart ---------------------
+                emotion_count = df['emotion'].value_counts().rename_axis('Emotions').reset_index(name='Counts')
+                bar_CC = px.bar(emotion_count, x='Emotions', y='Counts', color='Emotions', color_discrete_sequence=px.colors.sequential.Plotly3)
+                # bar_CC.update_xaxes(tickangle=0)
+                bar_CC.update_layout(height=450) #margin_t=10,margin_b=150,
+                st.plotly_chart(bar_CC,use_container_width=True)
+
+
+            elif choiceSelection=="Emotion Word Cloud":
+                #--------------------------WORD_CLOUD---------------------------
+                title('Emotions WordCloud',30)
+
+                unique_emotion = ['analytical','neutral','sadness','joy','anger','tentative','fear','confidence']
+                sl = st.slider('Pick Number of Words',50,200)
+                
+                def grey_color_func(word, font_size, position,orientation,random_state=None, **kwargs):
+                    return("hsl(240,100%%, %d%%)" % np.random.randint(45,55))
+                
+                wc = WordCloud(stopwords=stop_words, background_color="white", color_func = grey_color_func, max_font_size=150, random_state=42,max_words=sl, collocations=False)
+
+                plt.rcParams['figure.figsize'] = [30, 30]  #16,6 #40,40
+                full_names = unique_emotion
+
+                # Create subplots for each emotion
+                for index, emotion in enumerate(corpus.emotion):
+                    wc.generate(corpus.clean_tweet[emotion])
+                    
+                    plt.subplot(4, 2, index+1)  #3,4 #4,2
+                    plt.imshow(wc, interpolation="bilinear")
+                    plt.axis("off")
+                    plt.title(full_names[index], fontsize = 40)
+                    
+                st.pyplot()
+
+            elif choiceSelection=="Trendy Words":
+                #-------------------------Module 1-----------------------------
+
+                title('Most Popular One Word',30)
+                # st.caption('removing all the stop words in the sense common words.')
+
+                sl_2 = st.slider('Pick Number of Words',5,50,10, key="1")
+
+                # Unigrams - Most Popular One Keyword
+                top_text_bigrams = get_top_text_ngrams(corpus.clean_tweet, ngrams=(1,1), nr=sl_2)
+                top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
+                x, y = zip(*top_text_bigrams)
+                bar_C1 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title='Most Popular One Word', text=y, color_continuous_scale=px.colors.sequential.Plotly3[::-1])
+                bar_C1.update_traces(textposition="outside", cliponaxis=False)
+                bar_C1.update_yaxes(dtick=1, automargin=True)
+
+                st.plotly_chart(bar_C1,use_container_width=True)
+
+                #-------------------------Module 2-----------------------------
+                title('Most Popular Two Words',30)
+
+                sl_3 = st.slider('Pick Number of Words',5,50,10, key="2")
+
+                # Unigrams - Most Popular One Keyword
+                top_text_bigrams = get_top_text_ngrams(corpus.clean_tweet, ngrams=(2,2), nr=sl_3)
+                top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
+                x, y = zip(*top_text_bigrams)
+                bar_C2 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title='Most Popular Two Word', text=y, color_continuous_scale='Plotly3_r')
+                bar_C2.update_traces(textposition="outside", cliponaxis=False)
+                bar_C2.update_yaxes(dtick=1, automargin=True)
+
+                st.plotly_chart(bar_C2,use_container_width=True)
+
+                #-------------------------Module 3-----------------------------
+                title('Most Popular Three Words',30)
+
+                # header("range")
+                sl_4 = st.slider('Pick Number of Words',5,50,10, key="3")
+
+                # Unigrams - Most Popular One Keyword
+                top_text_bigrams = get_top_text_ngrams(corpus.clean_tweet, ngrams=(3,3), nr=sl_4)
+                top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
+                x, y = zip(*top_text_bigrams)
+                bar_C3 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title='Most Popular Three Word', text=y,color_continuous_scale='Plotly3_r')
+                bar_C3.update_traces(textposition="outside", cliponaxis=False)
+                bar_C3.update_yaxes(dtick=1, automargin=True)
+
+                st.plotly_chart(bar_C3,use_container_width=True)
+                
+            else:
+                # "Trendy Words Based on Timeline"  
+                #----------------------Line Chart Keywords--------------------------
+                title('Trendy Words Across Timeline',30)
+                line_chart = px.line(month_trend, x='Month', y='Counts', color='Words',color_discrete_sequence=px.colors.cyclical.HSV)
+                line_chart.update_traces(mode="markers+lines", hovertemplate=None)
+                line_chart.update_layout(height=430,hovermode="x unified") # plot_bgcolor='aliceblue'
+                st.plotly_chart(line_chart,use_container_width=True)
+                st.write("")    
+        
+        with col_4:
+            st.write("")
+            space(2)
+
+        if choiceSelection=="Trendy Words Based on Timeline":
+            
+            with col_3:
+                title('Trendy Words Based on Month',30)
+            
+            col__1, col__2, col__3, col__4 = st.columns([3,3,3,2])
+
+            with col__2:
+                monthChoice = st.radio("Select Month", ('May','June','July','August','September'))
+
+            with col__3:
+                sl_5 = st.slider("Pick Number of Words",5,50,10, key="4")
+            #-------------------------Module 4-----------------------------
+            
+            col___1, col___2, col___3 = st.columns([2,7,1])
+
+            with col___2:
+                months_name = ['May','June','July','August','September']
+                months = {'May':'2021-05','June':'2021-06','July':'2021-07','August':'2021-08','September':'2021-09'}
+
+                df['Datetime'] = pd.to_datetime(df['Datetime'])
+                df_date = df.set_index('Datetime')
+
+                # title(f"Top {sl_5} Keywords For {monthChoice}",40,'black')
+                # Unigrams - Most Popular One Keyword
+                selected_month = months[monthChoice]
+                top_text_bigrams = get_top_text_ngrams(df_date.loc[selected_month].clean_tweet, ngrams=(1,1), nr=sl_5)
+                top_text_bigrams = sorted(top_text_bigrams, key=lambda x:x[1], reverse=False)
+                x, y = zip(*top_text_bigrams)
+                bar_C4 = px.bar(x=y,y=x, color=y, labels={'x':'Number of words','y':'Words','color':'frequency'}, title=f'Top {sl_5} Keywords In {monthChoice}', text=y, color_continuous_scale='Plotly3_r')
+                bar_C4.update_traces(textposition="outside", cliponaxis=False)
+                # bar_C4.update_layout(title=f'Top KeywordWord In{monthChoice}')
+                # bar_C4.update_layout(autosize=True)
+                bar_C4.update_yaxes(dtick=1, automargin=True)
+
+                st.plotly_chart(bar_C4,use_container_width=True)
+
+
+
+        
+
+
+
+
+
+
+

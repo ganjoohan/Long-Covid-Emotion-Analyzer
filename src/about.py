@@ -1,6 +1,4 @@
 import streamlit as st
-from track_utils import add_page_visited_details
-from datetime import datetime
 from streamlit_lottie import st_lottie
 import json
 
@@ -41,7 +39,7 @@ def app():
         </style>""",unsafe_allow_html=True)
         
     #st.subheader("About")
-    add_page_visited_details("About",datetime.now())
+    
     st.title("About the Application")
     home_col_1, home_col_2, home_col_3= st.columns([10,2,1])
 

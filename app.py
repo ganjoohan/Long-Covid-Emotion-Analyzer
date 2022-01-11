@@ -1,6 +1,6 @@
 # Core Pkgs
 from PIL import Image
-img = Image.open("images/webicon.jpg")
+img = Image.open("images/logo.png")
 import streamlit as st
 st.set_page_config(
     page_title="Long Covid Emotion Analyzer",
@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
-        'About': "### MEsut_GAn"
+        'About': "### Long Covid Emotion Analyzer"
     }
 )
 import streamlit.components.v1 as components
@@ -24,7 +24,7 @@ import datetime
 
 MENU = {
     "Home" : home,
-    "Data Visualization" : dataVisualization,
+    "Exploratory Data Analysis" : dataVisualization,
     "Monitor" : monitor,
     "Documentation" : documentation,
     "About" : about,
@@ -35,7 +35,7 @@ def main():
     
     # specify the primary menu definition
     menu_data = [
-        {'icon': "far fa-chart-bar", 'label':"Data Visualization"},#no tooltip message
+        {'icon': "far fa-chart-bar", 'label':"Exploratory Data Analysis"},#no tooltip message
         {'icon': "fas fa-desktop",'label':"Monitor"},
         {'icon': "far fa-copy", 'label':"Documentation"},
         {'icon': "fas fa-info-circle", 'label':"About"}, 

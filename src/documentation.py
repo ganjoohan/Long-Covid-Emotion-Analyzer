@@ -1,8 +1,4 @@
 import streamlit as st
-from track_utils import add_page_visited_details
-from datetime import datetime
-
-
 
 def app():
     
@@ -31,7 +27,6 @@ def app():
         }
         </style>""",unsafe_allow_html=True)
 
-    add_page_visited_details("Documentation",datetime.now())
     st.title("Documentation")
 
     st.markdown("""
@@ -41,20 +36,20 @@ def app():
 
     <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Home</h2>
 
-    The `Home` introduces the concept of *long COVID* and displays interactively some of the sample tweets from the dataset which are analyzed and labeled. You can easily look into the tweets represented by each category of emotions.
+    The `Home` has an emotion analyzer which is a trained machine learning model that is used to predict the emotion of the user input text. You can input your text or tweets into the *textbox* and click the *Analyze* button to generate the analysis result.
 
-    <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Data Visualization</h2>
+    <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Exploratory Data Analysis</h2>
 
-    The `Data Visualization` explore the dataset by plotting out various insightful visualizations such as metrics, bar chart, word cloud, line chart, etc. to better display the data. You can find out the distribution of emotions in the dataset, which words are mostly used in each emotion, which word and combination of words are most popular. You can also find out the top keywords for each month and the top 10 emerging words. Lastly, you can inspect the dataset that are used in this project.
+    The `Exploratory Data Analysis` explore the dataset by plotting out various insightful visualizations such as bar chart, word cloud, line chart, etc. to better display the data. You can inspect the dataset that are used in this project and some of the sample tweets for each category of emotions. You can find out the distribution of emotions in the dataset, which words are mostly used in each emotion, which word and combination of words are most popular. You can also find out the trendy words based on timeline.
 
     **IMPORTANT**: It might take some time for the results to load due to the large dataset that is needed to process. 
 
-    <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Emotion Predictor</h2>
-
-    The `Emotion Predictor` is a trained machine learning model which is used to predict the emotion of the user input text. You can input your text or tweets into the *textbox* and click the *Submit* button to generate the analysis result.
-
     <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">Monitor</h2>
 
-    The `Monitor` collects the user's visited data and inputs text from the user. You can find out on which pages are most visited. You can also find out the past analyzed text entered by the user in `Emotion Predictor` and the results.
+    The `Monitor` collects the inputs text data in emotion analyzer from the user. You can find out the past analyzed text entered by the user in `Home`  and the results.
     
+    <h2 style="font-weight:bolder;font-size:25px;color:#216fdb;text-align:left;">About</h2>
+
+    The `About` introduces the concept of *long COVID*, some details about this application, and the information about the developer.
+
     """,unsafe_allow_html=True)

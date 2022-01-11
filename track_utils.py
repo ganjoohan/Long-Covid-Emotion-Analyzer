@@ -27,6 +27,6 @@ def add_prediction_details(rawtext,prediction,probability,timeOfvisit):
 	conn.commit()
 
 def view_all_prediction_details():
-	c.execute('SELECT * FROM emotionclfTable')
+	c.execute('SELECT * FROM emotionclfTable ORDER BY timeOfvisit DESC')
 	data = c.fetchall()
 	return data
