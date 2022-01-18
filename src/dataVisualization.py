@@ -391,10 +391,12 @@ def app():
                 st.plotly_chart(bar_C3,use_container_width=True)
                 
             else:
+                month_trend_1=month_trend[0:50]
+                # st.write(month_trend[0:50])
                 # "Trendy Words Based on Timeline"  
                 #----------------------Line Chart Keywords--------------------------
                 title('Trendy Words Across Timeline',30)
-                line_chart = px.line(month_trend, x='Month', y='Counts', color='Words',color_discrete_sequence=px.colors.cyclical.HSV)
+                line_chart = px.line(month_trend_1, x='Month', y='Counts', color='Words',markers=True,color_discrete_sequence=px.colors.cyclical.HSV)
                 line_chart.update_traces(mode="markers+lines", hovertemplate=None)
                 line_chart.update_layout(height=430,hovermode="x unified") # plot_bgcolor='aliceblue'
                 st.plotly_chart(line_chart,use_container_width=True)

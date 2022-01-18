@@ -41,7 +41,7 @@ def main():
         {'icon': "fas fa-info-circle", 'label':"About"}, 
     ]
 
-    create_emotionclf_table()
+    #create_emotionclf_table()
 
     over_theme = {'txc_inactive': '#FFFFFF','menu_background':'#35558A'}
     menu_id = hc.nav_bar(

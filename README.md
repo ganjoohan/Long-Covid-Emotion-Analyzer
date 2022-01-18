@@ -1,4 +1,4 @@
-# Long-Covid-Emotion-Analyzer
+# Long Covid Emotion Analyzer
 
 ### Link to the app
 https://long-covid-emotion-analyzer.herokuapp.com/
@@ -40,4 +40,4 @@ https://github.com/ganjoohan/Long-Covid-Emotion-Analyzer
 https://drive.google.com/file/d/1DuWp-kCj483yFLcHv3Gdc_GHLBGDWMyi/view
 
 ### About me
-I'm originally from Malacca, Malaysia, currenlty a third-year Bachelor of CS Data Science student at the University of Malaya!
+My name is Gan Joo Han. I'm originally from Malacca, Malaysia, currenlty a third-year Bachelor of CS Data Science student at the University of Malaya!
