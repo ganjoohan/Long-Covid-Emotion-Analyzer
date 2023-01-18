@@ -1,7 +1,8 @@
 # Long Covid Emotion Analyzer
 
 ### Link to the app
-https://long-covid-emotion-analyzer.herokuapp.com/
+older link: https://long-covid-emotion-analyzer.herokuapp.com/
+new link: https://ganjoohan-long-covid-emotion-analyzer-app-rll6uk.streamlit.app/
 
 ## About the Application
 
