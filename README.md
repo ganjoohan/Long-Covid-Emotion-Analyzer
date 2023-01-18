@@ -40,4 +40,4 @@ https://github.com/ganjoohan/Long-Covid-Emotion-Analyzer
 https://drive.google.com/file/d/1DuWp-kCj483yFLcHv3Gdc_GHLBGDWMyi/view
 
 ### About me
-My name is Gan Joo Han. I'm originally from Malacca, Malaysia, currenlty a third-year Bachelor of CS Data Science student at the University of Malaya!
+My name is Gan Joo Han. I'm originally from Malacca, Malaysia, currently a third-year Bachelor of CS Data Science student at the University of Malaya!
